@@ -324,7 +324,7 @@ public class SwampScapeTrackerPlugin extends Plugin
 			}
 			CarriedItem existing = result.get(item.getId());
 			long quantity = item.getQuantity() + (existing == null ? 0L : existing.quantity);
-			int unitPrice = existing == null ? Math.max(0, itemManager.getItemPrice(item.getId())) : existing.unitPrice;
+			long unitPrice = existing == null ? Math.max(0L, itemManager.getItemPrice(item.getId())) : existing.unitPrice;
 			result.put(item.getId(), new CarriedItem(quantity, unitPrice));
 		}
 	}
@@ -403,9 +403,9 @@ public class SwampScapeTrackerPlugin extends Plugin
 	private static final class CarriedItem
 	{
 		private final long quantity;
-		private final int unitPrice;
+		private final long unitPrice;
 
-		private CarriedItem(long quantity, int unitPrice)
+		private CarriedItem(long quantity, long unitPrice)
 		{
 			this.quantity = quantity;
 			this.unitPrice = unitPrice;
@@ -525,8 +525,8 @@ public class SwampScapeTrackerPlugin extends Plugin
 		long now = System.currentTimeMillis();
 		for (ItemStack stack : items)
 		{
-			int unitPrice = itemManager.getItemPrice(stack.getId());
-			long totalValue = Math.max(0L, (long) unitPrice * stack.getQuantity());
+			long unitPrice = itemManager.getItemPrice(stack.getId());
+			long totalValue = Math.max(0L, unitPrice * stack.getQuantity());
 			if (totalValue < config.lootThreshold())
 			{
 				continue;
