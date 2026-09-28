@@ -29,9 +29,9 @@ The receiving server will also see the connecting IP address. The plugin does no
 ## Connect
 
 1. In the SwampScape Discord server, link the character with `/rsn link`.
-2. Run `/tracker connect` and copy the private server URL and connection token.
+2. Run `/tracker connect` and copy the private connection token.
 3. Install **SwampScape Tracker** from RuneLite's Plugin Hub.
-4. Open the plugin settings and paste the server URL and token.
+4. Open the plugin settings and paste the token. The official SwampScape HTTPS server is already configured.
 5. Enable **Share clan activity** after reviewing the third-party server warning.
 6. Enable only the tracking categories you want to share. Screenshot sharing remains optional.
 

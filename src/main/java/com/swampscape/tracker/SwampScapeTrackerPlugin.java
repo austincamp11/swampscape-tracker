@@ -63,7 +63,7 @@ import net.runelite.client.util.Text;
 )
 public class SwampScapeTrackerPlugin extends Plugin
 {
-	static final String PLUGIN_VERSION = "0.3.3";
+	static final String PLUGIN_VERSION = "0.3.4";
 	private static final int TICKS_PER_UPLOAD = 100;
 	private static final int DEATH_SETTLE_TICKS = 8;
 	private static final int DEATH_SCREENSHOT_TIMEOUT_TICKS = 20;

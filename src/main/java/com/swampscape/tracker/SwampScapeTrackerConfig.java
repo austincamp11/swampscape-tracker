@@ -23,12 +23,12 @@ public interface SwampScapeTrackerConfig extends Config
 	@ConfigItem(
 		keyName = "serverUrl",
 		name = "Server URL",
-		description = "The server URL supplied by the Discord bot.",
+		description = "SwampScape's secure tracker endpoint. Change this only when instructed.",
 		position = 1
 	)
 	default String serverUrl()
 	{
-		return "http://127.0.0.1:8787";
+		return "https://ss-n1.tail4f3ba9.ts.net:8443";
 	}
 
 	@ConfigItem(
