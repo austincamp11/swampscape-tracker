@@ -89,6 +89,9 @@ public class SwampScapeTrackerPlugin extends Plugin
 	private SwampScapeTrackerConfig config;
 
 	@Inject
+	private ConfigManager configManager;
+
+	@Inject
 	private TrackerClient trackerClient;
 
 	@Inject
@@ -116,6 +119,13 @@ public class SwampScapeTrackerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		if (SwampScapeTrackerConfig.LEGACY_SERVER_URL.equalsIgnoreCase(config.serverUrl().trim()))
+		{
+			configManager.setConfiguration(
+				"swampscapeTracker",
+				"serverUrl",
+				SwampScapeTrackerConfig.DEFAULT_SERVER_URL);
+		}
 		loggedInTicks = 0;
 		recentLoot.clear();
 		recentKills.clear();

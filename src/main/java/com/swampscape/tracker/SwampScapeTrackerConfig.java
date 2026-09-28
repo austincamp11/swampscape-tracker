@@ -8,6 +8,9 @@ import net.runelite.client.config.Range;
 @ConfigGroup("swampscapeTracker")
 public interface SwampScapeTrackerConfig extends Config
 {
+	String DEFAULT_SERVER_URL = "https://ss-n1.tail4f3ba9.ts.net:8443";
+	String LEGACY_SERVER_URL = "https://campwk001.tail4f3ba9.ts.net:8443";
+
 	@ConfigItem(
 		keyName = "shareActivity",
 		name = "Share clan activity",
@@ -28,7 +31,7 @@ public interface SwampScapeTrackerConfig extends Config
 	)
 	default String serverUrl()
 	{
-		return "https://ss-n1.tail4f3ba9.ts.net:8443";
+		return DEFAULT_SERVER_URL;
 	}
 
 	@ConfigItem(
