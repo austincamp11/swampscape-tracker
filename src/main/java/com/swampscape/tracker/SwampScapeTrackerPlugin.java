@@ -8,12 +8,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -63,7 +65,7 @@ import net.runelite.client.util.Text;
 )
 public class SwampScapeTrackerPlugin extends Plugin
 {
-	static final String PLUGIN_VERSION = "0.3.4";
+	static final String PLUGIN_VERSION = "0.4.0";
 	private static final int TICKS_PER_UPLOAD = 100;
 	private static final int DEATH_SETTLE_TICKS = 8;
 	private static final int DEATH_SCREENSHOT_TIMEOUT_TICKS = 20;
@@ -532,29 +534,91 @@ public class SwampScapeTrackerPlugin extends Plugin
 		{
 			return;
 		}
-		long now = System.currentTimeMillis();
+		long totalValue = 0L;
+		long totalQuantity = 0L;
+		long featuredValue = -1L;
+		int featuredItemId = 0;
+		List<String> itemNames = new ArrayList<>();
+		StringBuilder signatureBuilder = new StringBuilder(normalizeActivityName(source));
 		for (ItemStack stack : items)
 		{
-			long unitPrice = itemManager.getItemPrice(stack.getId());
-			long totalValue = Math.max(0L, unitPrice * stack.getQuantity());
-			if (totalValue < config.lootThreshold())
+			if (stack.getId() < 0 || stack.getQuantity() <= 0)
 			{
 				continue;
 			}
-			String signature = stack.getId() + ":" + stack.getQuantity();
-			Long previous = recentLoot.put(signature, now);
-			if (previous != null && now - previous < DUPLICATE_WINDOW_MILLIS)
+			long unitPrice = Math.max(0L, itemManager.getItemPrice(stack.getId()));
+			long stackValue = unitPrice * stack.getQuantity();
+			totalValue = Math.min(Integer.MAX_VALUE, totalValue + stackValue);
+			totalQuantity = Math.min(Integer.MAX_VALUE, totalQuantity + stack.getQuantity());
+			if (stackValue > featuredValue)
 			{
-				continue;
+				featuredValue = stackValue;
+				featuredItemId = stack.getId();
 			}
 			ItemComposition item = itemManager.getItemComposition(stack.getId());
-			trackerClient.enqueue(TrackerEvent.loot(
-				(int) Math.min(totalValue, Integer.MAX_VALUE),
-				stack.getQuantity(),
-				stack.getId(),
-				safeName(item.getName(), "Unknown item"),
-				source));
+			String itemName = safeName(item.getName(), "Unknown item");
+			itemNames.add(itemName + (stack.getQuantity() > 1 ? " x" + stack.getQuantity() : ""));
+			signatureBuilder.append(':').append(stack.getId()).append('x').append(stack.getQuantity());
 		}
+		if (totalValue < config.lootThreshold() || itemNames.isEmpty())
+		{
+			return;
+		}
+
+		long now = System.currentTimeMillis();
+		String signature = signatureBuilder.toString();
+		Long previous = recentLoot.put(signature, now);
+		if (previous != null && now - previous < DUPLICATE_WINDOW_MILLIS)
+		{
+			return;
+		}
+
+		String itemSummary = itemNames.size() == 1
+			? itemNames.get(0)
+			: String.join(", ", itemNames.subList(0, Math.min(3, itemNames.size()))) +
+				(itemNames.size() > 3 ? " +" + (itemNames.size() - 3) + " more" : "");
+		if (itemSummary.length() > 120)
+		{
+			itemSummary = itemSummary.substring(0, 117) + "...";
+		}
+		enqueueLoot(
+			(int) totalValue,
+			(int) totalQuantity,
+			featuredItemId,
+			itemSummary,
+			source);
+	}
+
+	private void enqueueLoot(int value, int quantity, int itemId, String itemName, String source)
+	{
+		Player localPlayer = client.getLocalPlayer();
+		String rsn = localPlayer == null ? null : localPlayer.getName();
+		if (!config.lootScreenshots())
+		{
+			trackerClient.enqueue(TrackerEvent.loot(value, quantity, itemId, itemName, source, null));
+			if (rsn != null)
+			{
+				trackerClient.flush(rsn, PLUGIN_VERSION);
+			}
+			return;
+		}
+		drawManager.requestNextFrameListener((Image image) -> executor.submit(() ->
+		{
+			String screenshotBase64 = null;
+			try
+			{
+				screenshotBase64 = encodeScreenshot(image);
+			}
+			catch (IOException error)
+			{
+				log.debug("Unable to encode SwampScape loot screenshot", error);
+			}
+			trackerClient.enqueue(TrackerEvent.loot(value, quantity, itemId, itemName, source, screenshotBase64));
+			if (rsn != null)
+			{
+				trackerClient.flush(rsn, PLUGIN_VERSION);
+			}
+		}));
 	}
 
 	private void flushElapsedTime()

@@ -66,9 +66,26 @@ final class TrackerEvent
 			java.util.UUID.randomUUID().toString());
 	}
 
-	static TrackerEvent loot(int value, int quantity, int itemId, String itemName, String source)
+	static TrackerEvent loot(
+		int value,
+		int quantity,
+		int itemId,
+		String itemName,
+		String source,
+		String screenshotBase64)
 	{
-		return create("LOOT", null, value, quantity, itemId, itemName, source);
+		return new TrackerEvent(
+			"LOOT",
+			null,
+			value,
+			quantity,
+			itemId,
+			itemName,
+			source,
+			null,
+			screenshotBase64,
+			java.time.Instant.now().toString(),
+			java.util.UUID.randomUUID().toString());
 	}
 
 	private static TrackerEvent create(

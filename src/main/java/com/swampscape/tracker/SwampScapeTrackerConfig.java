@@ -101,12 +101,24 @@ public interface SwampScapeTrackerConfig extends Config
 		return true;
 	}
 
+	@ConfigItem(
+		keyName = "lootScreenshots",
+		name = "Share loot screenshots",
+		description = "Attach a game-window screenshot to qualifying loot-flex posts. Visible game chat may be included.",
+		warning = "Screenshots can include visible game chat and are uploaded to the SwampScape Discord server",
+		position = 8
+	)
+	default boolean lootScreenshots()
+	{
+		return false;
+	}
+
 	@Range(min = 1, max = Integer.MAX_VALUE)
 	@ConfigItem(
 		keyName = "lootThreshold",
 		name = "Loot threshold (gp)",
-		description = "Minimum estimated GE value for a loot stack. The server also enforces its own threshold.",
-		position = 8
+		description = "Minimum combined estimated GE value for the full drop. The server also enforces its own threshold.",
+		position = 9
 	)
 	default int lootThreshold()
 	{

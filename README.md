@@ -8,10 +8,10 @@ SwampScape Tracker is an opt-in RuneLite companion for the SwampScape Old School
 - Recognized boss kills and raid completions
 - PvP kills
 - Deaths, the most recently observed attacking NPC or player, and estimated GE value lost after respawn
-- Individual loot stacks worth at least 500,000 gp by default
-- Optional high-resolution death screenshots
+- Full loot drops with a combined estimated value of at least 500,000 gp by default
+- Optional high-resolution death and loot-flex screenshots
 
-Ordinary NPC kills are not uploaded. Death screenshots are disabled by default and can include the visible game chat box when enabled.
+Ordinary NPC kills are not uploaded. Screenshots are disabled by default and can include the visible game chat box when enabled.
 
 ## Privacy and network use
 
@@ -22,6 +22,7 @@ Nothing is uploaded until **Share clan activity** is enabled. The plugin can sen
 - Item IDs, names, quantities, and estimated GE values for qualifying loot
 - Recent attacker names and estimated loss for deaths
 - A death screenshot only when **Share death screenshots** is separately enabled
+- A qualifying loot screenshot only when **Share loot screenshots** is separately enabled
 - A revocable connection token in the HTTPS authorization header
 
 The receiving server will also see the connecting IP address. The plugin does not read or transmit passwords, Jagex account credentials, bank contents, Discord credentials, or RuneScape login credentials. Uploads run asynchronously and are accepted only for RuneScape accounts linked to the token's Discord member.
@@ -34,6 +35,8 @@ The receiving server will also see the connecting IP address. The plugin does no
 4. Open the plugin settings and paste the token. The official SwampScape HTTPS server is already configured.
 5. Enable **Share clan activity** after reviewing the third-party server warning.
 6. Enable only the tracking categories you want to share. Screenshot sharing remains optional.
+
+Qualifying loot is uploaded immediately. Enable **Share loot screenshots** if you want the loot-flex Discord post to include the next rendered game frame.
 
 Running `/tracker connect` again replaces the previous token. `/tracker revoke` disables it without deleting historical clan statistics.
 
