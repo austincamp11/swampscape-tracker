@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -46,6 +48,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.events.PlayerLootReceived;
+import net.runelite.client.events.ServerNpcLoot;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
 import net.runelite.client.hiscore.HiscoreSkill;
@@ -65,7 +68,7 @@ import net.runelite.client.util.Text;
 )
 public class SwampScapeTrackerPlugin extends Plugin
 {
-	static final String PLUGIN_VERSION = "0.4.0";
+	static final String PLUGIN_VERSION = "0.4.1";
 	private static final int TICKS_PER_UPLOAD = 100;
 	private static final int DEATH_SETTLE_TICKS = 8;
 	private static final int DEATH_SCREENSHOT_TIMEOUT_TICKS = 20;
@@ -474,6 +477,22 @@ public class SwampScapeTrackerPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onServerNpcLoot(ServerNpcLoot event)
+	{
+		if (!config.shareActivity())
+		{
+			return;
+		}
+		String source = safeName(event.getComposition().getName(), "Unknown NPC");
+		String bossName = BOSS_NAMES.get(normalizeActivityName(source));
+		if (config.trackKills() && bossName != null)
+		{
+			recordKill("BOSS", bossName);
+		}
+		recordLoot(event.getItems(), source);
+	}
+
+	@Subscribe
 	public void onPlayerLootReceived(PlayerLootReceived event)
 	{
 		if (!config.shareActivity())
@@ -602,6 +621,11 @@ public class SwampScapeTrackerPlugin extends Plugin
 			}
 			return;
 		}
+		AtomicBoolean submitted = new AtomicBoolean();
+		executor.schedule(
+			() -> submitLoot(value, quantity, itemId, itemName, source, null, rsn, submitted),
+			2,
+			TimeUnit.SECONDS);
 		drawManager.requestNextFrameListener((Image image) -> executor.submit(() ->
 		{
 			String screenshotBase64 = null;
@@ -613,12 +637,29 @@ public class SwampScapeTrackerPlugin extends Plugin
 			{
 				log.debug("Unable to encode SwampScape loot screenshot", error);
 			}
-			trackerClient.enqueue(TrackerEvent.loot(value, quantity, itemId, itemName, source, screenshotBase64));
-			if (rsn != null)
-			{
-				trackerClient.flush(rsn, PLUGIN_VERSION);
-			}
+			submitLoot(value, quantity, itemId, itemName, source, screenshotBase64, rsn, submitted);
 		}));
+	}
+
+	private void submitLoot(
+		int value,
+		int quantity,
+		int itemId,
+		String itemName,
+		String source,
+		String screenshotBase64,
+		String rsn,
+		AtomicBoolean submitted)
+	{
+		if (!submitted.compareAndSet(false, true))
+		{
+			return;
+		}
+		trackerClient.enqueue(TrackerEvent.loot(value, quantity, itemId, itemName, source, screenshotBase64));
+		if (rsn != null)
+		{
+			trackerClient.flush(rsn, PLUGIN_VERSION);
+		}
 	}
 
 	private void flushElapsedTime()

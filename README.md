@@ -37,6 +37,7 @@ The receiving server will also see the connecting IP address. The plugin does no
 6. Enable only the tracking categories you want to share. Screenshot sharing remains optional.
 
 Qualifying loot is uploaded immediately. Enable **Share loot screenshots** if you want the loot-flex Discord post to include the next rendered game frame.
+If RuneLite cannot capture that frame within two seconds, the loot event is still uploaded without an image so tracking is never blocked by screenshot capture.
 
 Running `/tracker connect` again replaces the previous token. `/tracker revoke` disables it without deleting historical clan statistics.
 
